@@ -1,0 +1,1181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070b12">
+<meta name="mobile-web-app-capable" content="yes">
+<title>AC Copilot · 车载空调语音助手</title>
+<style>
+:root{--bg:#070b12;--card:#111a27;--card2:#182538;--line:#26374e;--txt:#eef5ff;--dim:#8fa5c0;--cyan:#3ddcff;--green:#42e0a3;--amber:#ffb547;--red:#ff6f6f;--blue:#78a9ff;--r:18px}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;padding:0;background:var(--bg);color:var(--txt);font:16px/1.5 system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif}
+body{max-width:780px;margin:0 auto;padding:calc(10px + env(safe-area-inset-top)) 12px calc(24px + env(safe-area-inset-bottom));-webkit-text-size-adjust:100%}
+button,input{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card2);border-radius:12px;min-height:48px;transition:.15s}
+button:active{transform:scale(.97)}
+.hidden{display:none!important}
+.card{background:linear-gradient(160deg,var(--card),#0d1520);border:1px solid var(--line);border-radius:var(--r);padding:14px;margin:12px 0;box-shadow:0 8px 24px #0005}
+h2{font-size:15px;font-weight:600;letter-spacing:.5px;margin:0 0 10px;color:var(--dim)}
+h2 small{font-weight:400;font-size:12px;opacity:.75;margin-left:6px}
+.lbl{font-size:13px;color:var(--dim);letter-spacing:1px}
+.hdr{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;padding:4px 2px 0}
+.brand{font-size:19px;font-weight:800;letter-spacing:2px;display:flex;align-items:center;gap:9px}
+.brand small{font-size:11px;font-weight:400;letter-spacing:0;color:var(--dim)}
+.brand .dot{width:11px;height:11px;border-radius:50%;background:var(--cyan);box-shadow:0 0 14px var(--cyan)}
+.chips{display:flex;gap:5px;flex-wrap:wrap}
+.chip{font-size:11px;padding:4px 8px;border-radius:999px;border:1px solid var(--line);background:#0e1723;color:var(--dim);white-space:nowrap}
+.chip.on{color:var(--green);border-color:#1d5a45;background:#0d2b22}
+.chip.bad{color:var(--red);border-color:#5a2828;background:#2a1414}
+.chip.warn{color:var(--amber);border-color:#5c4420;background:#2a2010}
+.warn{background:#3a1414;border:1px solid #7a2b2b;color:#ffd9d9;padding:11px 13px;border-radius:14px;margin:10px 0;font-size:14px}
+.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:14px;align-items:center;padding:18px}
+.big{font-size:clamp(58px,16vw,96px);font-weight:700;line-height:1;letter-spacing:-3px;font-variant-numeric:tabular-nums;color:var(--cyan);text-shadow:0 0 34px #3ddcff33}
+.big small{font-size:.32em;letter-spacing:0;margin-left:6px;color:var(--dim)}
+.hero .sub{font-size:12px;color:var(--dim);margin-top:8px}
+.metric{display:flex;justify-content:space-between;align-items:baseline;gap:8px;padding:9px 0;border-bottom:1px dashed var(--line)}
+.metric:last-child{border-bottom:0}
+.metric span{font-size:12px;color:var(--dim)}
+.metric b{font-size:19px;font-variant-numeric:tabular-nums}
+.env-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+.env-grid>div{background:#0b131e;border:1px solid var(--line);border-radius:12px;padding:9px 10px}
+.env-grid span{display:block;font-size:11px;color:var(--dim)}
+.env-grid b{font-size:16px;font-weight:600}
+.foot{font-size:11px;color:var(--dim);margin-top:9px;word-break:break-all}
+.row{display:flex;justify-content:space-between;align-items:center;gap:8px}
+.row b{font-size:14px;font-weight:600}
+.grp{margin:12px 0}
+.grp-t{display:flex;justify-content:space-between;font-size:13px;color:var(--dim);margin-bottom:8px}
+.grp-t b{color:var(--cyan);font-size:15px}
+.steps{display:grid;grid-template-columns:repeat(9,1fr);gap:5px}
+.steps.fans{grid-template-columns:repeat(8,1fr)}
+.step{min-height:46px;padding:0;border-radius:10px;font-size:14px;font-weight:600;background:#0d1724}
+.step.cold{color:#8fd0ff}.step.hot{color:#ffb08f}
+.step.sel{background:var(--cyan);color:#04121a;border-color:var(--cyan);box-shadow:0 0 16px #3ddcff55}
+.two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.seg{display:flex;gap:6px}
+.seg button{flex:1;min-height:48px}
+.seg button.sel{background:var(--cyan);color:#04121a;border-color:var(--cyan);font-weight:700}
+.advice{border-color:#2b4a63;background:linear-gradient(160deg,#10202e,#0b1420)}
+.advice.limit{border-color:#7a3030;background:linear-gradient(160deg,#2a1418,#140d12)}
+.advice-head{display:flex;justify-content:space-between;gap:8px;align-items:center;font-size:12px;color:var(--dim)}
+.advice-head #adviceLevel{font-weight:700;letter-spacing:1px;color:var(--cyan)}
+.advice.limit #adviceLevel{color:var(--red)}
+.advice-text{font-size:clamp(19px,4.6vw,26px);font-weight:600;line-height:1.45;margin:10px 0}
+.advice-foot{font-size:12px;color:var(--dim);line-height:1.6}
+.controls{margin:14px 0}
+.primary{width:100%;min-height:68px;font-size:21px;font-weight:800;letter-spacing:2px;border:0;border-radius:18px;background:linear-gradient(135deg,#1fa9d8,#3ddcff);color:#04121a;box-shadow:0 8px 26px #3ddcff33}
+.primary.running{background:linear-gradient(135deg,#b04a4a,#ff7a6a);color:#fff;box-shadow:0 8px 26px #ff6a5533}
+.btns{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:8px;margin-top:9px}
+.btns button{min-height:48px;font-size:13px}
+.cfg label{display:block;font-size:12px;color:var(--dim);margin:10px 0 4px}
+.cfg input{width:100%;min-height:46px;padding:8px 11px;border-radius:11px;border:1px solid var(--line);background:#0a121d;font-size:15px}
+.cfg .pair{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.mono{font:12px/1.6 ui-monospace,Menlo,Consolas,monospace;word-break:break-all;background:#080f18;border:1px solid var(--line);border-radius:10px;padding:9px;color:#a9c7e8;max-height:140px;overflow:auto}
+.help ol,.help ul{margin:0;padding-left:20px;font-size:13px;line-height:1.75}
+.help li{margin:6px 0}
+.help b{color:var(--cyan)}
+.help h3{font-size:13px;color:var(--amber);margin:14px 0 5px;letter-spacing:.5px}
+.help code{font:12px ui-monospace,Menlo,Consolas,monospace;background:#0a121d;border:1px solid var(--line);border-radius:6px;padding:1px 5px;color:#a9c7e8;word-break:break-all}
+.help .tip{font-size:12px;color:var(--dim);border-left:2px solid var(--amber);padding-left:10px;margin-top:10px;line-height:1.7}
+#log{font-size:12px;line-height:1.7;color:var(--dim);max-height:150px;overflow:auto;font-variant-numeric:tabular-nums}
+#log div{border-bottom:1px dashed #1c2a3c;padding:2px 0}
+#log .e{color:var(--red)}#log .w{color:var(--amber)}#log .g{color:var(--green)}
+@media(max-width:420px){.hero{grid-template-columns:1fr}.steps{grid-template-columns:repeat(9,1fr)}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+
+<div id="secureWarn" class="warn hidden"></div>
+
+<div class="hdr">
+  <div class="brand"><span class="dot"></span>AC COPILOT <small>车载副屏 · 恒温语音助手</small></div>
+  <div class="chips" id="chips"></div>
+</div>
+
+<section class="card hero">
+  <div>
+    <div class="lbl">车内实时温度</div>
+    <div class="big"><span id="cabin">--.-</span><small>℃</small></div>
+    <div class="sub" id="cabinAt">等待蓝牙数据</div>
+  </div>
+  <div>
+    <div class="metric"><span>车内湿度</span><b id="hum">-- %</b></div>
+    <div class="metric"><span>车外温度</span><b id="outside">-- ℃</b></div>
+    <div class="metric"><span>目标 / 死区</span><b id="targetLbl">24.0 ±1.5</b></div>
+    <div class="metric"><span>传感器电量</span><b id="batt">--</b></div>
+  </div>
+</section>
+
+<section class="card">
+  <div class="row"><span class="lbl">GPS 与车外天气（按当前坐标 + 当地时刻）</span><b id="gpsStatus">未定位</b></div>
+  <div class="env-grid">
+    <div><span>车外温度 / 体感</span><b id="envTemp">--</b></div>
+    <div><span>车外湿度 / 露点</span><b id="envHum">--</b></div>
+    <div><span>天气现象 / 观测时刻</span><b id="envText">--</b></div>
+    <div><span>数据源 / 新鲜度</span><b id="envSrc">--</b></div>
+  </div>
+  <div class="foot" id="envCoord">坐标 --</div>
+</section>
+
+<section class="card">
+  <h2>当前车机状态 <small>每次点选都会记录操作时间并重置冷静期</small></h2>
+  <div class="grp">
+    <div class="grp-t"><span>温度档位</span><b id="stepVal">0 · 常温</b></div>
+    <div class="steps" id="steps"></div>
+  </div>
+  <div class="grp">
+    <div class="grp-t"><span>风量档位</span><b id="fanVal">0 档</b></div>
+    <div class="steps fans" id="fans"></div>
+  </div>
+  <div class="grp two">
+    <div><div class="grp-t"><span>内外循环</span></div><div class="seg" id="recirc"><button data-v="inner">内循环</button><button data-v="outer">外循环</button></div></div>
+    <div><div class="grp-t"><span>AC · 定频压缩机</span></div><div class="seg" id="ac"><button data-v="on">开</button><button data-v="off">关</button></div></div>
+  </div>
+</section>
+
+<section class="card advice" id="adviceCard">
+  <div class="advice-head"><span id="adviceLevel">待命</span><span id="coolTip"></span></div>
+  <div class="advice-text" id="adviceText">点击底部「启动智能助手」，连接温湿度计并允许定位。</div>
+  <div class="advice-foot" id="adviceBasis">目标 24℃ · 死区 ±1.5℃ · 建议后 5 分钟冷静期</div>
+</section>
+
+<section class="controls">
+  <button id="btnStart" class="primary">▶ 启动智能助手</button>
+  <div class="btns">
+    <button id="btnBle">连接 / 重连蓝牙</button>
+    <button id="btnWeather">刷新天气</button>
+    <button id="btnRepeat">重播上条建议</button>
+    <button id="btnDemo">演示模式</button>
+    <button id="btnCfg">设置 / 诊断</button>
+    <button id="btnHelp">使用说明</button>
+  </div>
+</section>
+
+<section class="card cfg hidden" id="cfg">
+  <h2>设置与诊断</h2>
+  <label>和风天气 API Host（已填入你的专属域名 jq4up77284.re.qweatherapi.com；通用域名 devapi.qweather.com 会返回 403）</label>
+  <input id="cfgHost" type="text" spellcheck="false" placeholder="jq4up77284.re.qweatherapi.com">
+  <label>和风天气 API Key（明文写在前端 = 公开，仅建议自用）</label>
+  <input id="cfgKey" type="text" spellcheck="false">
+  <div class="pair">
+    <div><label>目标温度 ℃</label><input id="cfgTarget" type="number" min="18" max="30" step="0.5" value="24"></div>
+    <div><label>天气前馈</label><div class="seg" id="cfgAware"><button data-v="on">开</button><button data-v="off">关</button></div></div>
+  </div>
+  <label>GPS 不可用时手动坐标（经度, 纬度；和风要求经度在前）</label>
+  <div class="pair"><input id="cfgLon" type="number" step="0.0001" placeholder="经度 117.18"><input id="cfgLat" type="number" step="0.0001" placeholder="纬度 34.20"></div>
+  <div class="btns" style="margin-top:9px"><button id="btnSaveCfg">保存设置</button><button id="btnManualGeo">用手动坐标取天气</button></div>
+  <label>广播帧解析诊断：粘贴 Service Data HEX（FE95 米家 / 181A ATC / pvvx Custom）</label>
+  <input id="cfgHex" type="text" spellcheck="false" placeholder="例：30 58 5b 05 01 a4 c1 38 ...">
+  <div class="btns" style="margin-top:8px"><button id="btnParseHex">解析广播帧</button></div>
+  <div class="mono" id="hexOut">浏览器稳定版无法扫描广播，此处用于校验解析公式或配合实验性扫描使用。</div>
+</section>
+
+<section class="card help hidden" id="help">
+  <h2>安卓实机使用说明 <small>首次部署照做一遍，之后点「启动智能助手」即可</small></h2>
+
+  <h3>一、拿到 HTTPS 网址（三选一，推荐 A）</h3>
+  <ol>
+    <li><b>A · Vercel（最省事）</b>：把本文件 <code>index.html</code> 放进 GitHub 仓库根目录 → vercel.com 登录 → Add New → Project → Import 该仓库 → Framework 选 Other、其余默认 → Deploy，得到 <code>https://xxx.vercel.app</code>。也可在电脑上执行 <code>npx vercel --prod</code> 直接部署当前目录。</li>
+    <li><b>B · GitHub Pages</b>：仓库 Settings → Pages → Deploy from a branch → main / root → 得到 <code>https://用户名.github.io/仓库名/</code>。免费版要求公开仓库，而本文件内含和风 API Key，公开即等于泄露；介意就改用 A。</li>
+    <li><b>C · Termux 本机（零公网、零证书、零电脑）</b>：安卓机装 Termux，把 <code>index.html</code> 放到家目录，执行 <code>pkg install python -y</code> 再执行 <code>python -m http.server 8080</code>，Chrome 打开 <code>http://localhost:8080/index.html</code>。<b>localhost 被 Chrome 视为安全上下文</b>，蓝牙 / GPS / 常亮全部可用，也不依赖家里电脑开机；只有天气接口仍需手机蜂窝联网。</li>
+  </ol>
+  <div class="tip">不能直接用 <code>file://</code> 打开，也不能用 <code>http://192.168.x.x</code>：两者都不是安全上下文，Web Bluetooth / Geolocation / Wake Lock 会被 Chrome 禁用。页面顶部出现红色警告条就是这个原因。</div>
+
+  <h3>二、手机上开权限（只做一次）</h3>
+  <ol>
+    <li>用<b>独立的 Google Chrome</b>（不是微信 / QQ / UC 内置浏览器），系统需 Android 6+。</li>
+    <li>系统设置里打开<b>蓝牙</b>和<b>位置信息</b>，定位模式设为「高精度 / 仅 GPS」。BLE 扫描依赖系统定位开关，只给网页权限不够。</li>
+    <li>Android 12+：设置 → 应用 → Chrome → 权限 → <b>附近的设备</b>允许；Android 11 及以下则是<b>位置信息</b>允许。</li>
+    <li>Chrome 打开网址后：地址栏左侧锁形图标 → 网站设置 → <b>蓝牙</b>与<b>位置信息</b>都设为允许；再点 Chrome 菜单 → <b>添加到主屏幕</b>，以后一键打开。</li>
+    <li><b>中文语音包</b>：系统设置 → 语言和输入法 → 文字转语音（TTS）→ 安装「中文（中国）」语音数据。没有中文 TTS，<code>zh-CN</code> 会完全无声；国产 ROM 若不带 Google TTS，需先装「Google 文字转语音引擎」或改用系统自带中文引擎。</li>
+  </ol>
+
+  <h3>三、上车使用</h3>
+  <ol>
+    <li>手机插车充、横放支架上；关掉省电模式，并把「充电时屏幕永不休眠」打开做兜底。</li>
+    <li>点 <b>▶ 启动智能助手</b>（必须是用户手势，这一步同时解锁 TTS / 申请常亮 / 弹蓝牙选择器 / 请求定位）→ 在弹窗里选 <code>LYWSD03MMC</code>；刷过 pvvx 固件则选 <code>ATC_xxxx</code>。</li>
+    <li>顶部状态灯变「已连接」后，在中部控制区<b>手动点选当前车机的真实档位</b>（温度格 / 风量 / 内外循环 / AC）。算法按你填的状态算差值，填错就会给错建议。</li>
+    <li>之后自动运行：每 1 分钟或温度变化 ≥0.5℃ 算一次；车内 24±1.5℃ 内保持静默；每条建议后 5 分钟冷静期不重复播报。</li>
+    <li><b>不要按电源键锁屏</b>。Wake Lock 只防自动息屏，锁屏后 Chrome 会挂起 JS；切走再回来会自动重新申请常亮。</li>
+  </ol>
+
+  <h3>四、排障</h3>
+  <ul>
+    <li>连不上蓝牙：确认传感器没被别的手机 / 米家 App 占着连接，点「连接 / 重连蓝牙」重试；某些原厂批次需先在系统蓝牙里配对一次。仍不行可用桌面 Chrome 刷 pvvx 明文固件（本页兼容 ATC_ / LYWSD03 / BTHome）。</li>
+    <li>天气一直不更新：位移 &lt;3km 且 &lt;10 分钟会主动跳过以省配额，点「刷新天气」可强制；隧道 / 无网会回落 Open-Meteo 或保留上次数据，不影响温度判断。</li>
+    <li>没有声音：先点「重播上条建议」验证 TTS，再检查媒体音量、中文语音包、静音 / 勿扰。</li>
+    <li>页面里明文写着 API Key，任何能打开该网址的人都能查看源码。仅建议自用；对外使用请改成后端代理或换成无 Key 的 Open-Meteo。</li>
+  </ul>
+</section>
+
+<section class="card log"><h2>事件日志 <small>最近 40 条</small></h2><div id="log"></div></section>
+
+<!-- ===== 纯逻辑层：不触碰 DOM，可被 Node 单独提取自测 ===== -->
+<script id="core">
+'use strict';
+
+/* ---------- LYWSD03MMC 的 GATT UUID ----------
+ * 原厂固件：广播 0xFE95 是加密 MiBeacon，但「连接态」数据是明文，无需 bindkey。
+ *   Service        ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6
+ *   Char 温湿度     ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6   [read, notify]
+ *   5 字节帧: T(int16 LE)/100 ℃, H(uint8) %, V(uint16 LE) mV
+ *   实测帧 17 0a 44 78 0b -> 25.83℃ / 68% / 2936mV
+ * pvvx/ATC 自定义固件：标准 Environmental Sensing 0x181A + 私有 0x1F10。
+ * 关键：自定义 service 必须写进 requestDevice.optionalServices，否则
+ *       getPrimaryService() 会抛 SecurityError。
+ */
+const UUIDS = {
+  MIJI_SERVICE: 'ebe0ccb0-7a0a-4b0c-8a1a-6ff2997da3a6',
+  MIJI_TH:      'ebe0ccc1-7a0a-4b0c-8a1a-6ff2997da3a6',
+  ENV_SERVICE:  0x181a,
+  TEMP_01:      0x2a1f,   // int16 LE /10
+  TEMP_001:     0x2a6e,   // int16 LE /100
+  HUM_001:      0x2a6f,   // uint16 LE /100
+  BATT_SERVICE: 0x180f,
+  BATT_LEVEL:   0x2a19,
+  PVVX_SERVICE: 0x1f10,
+  PVVX_CHAR:    0x1f1f
+};
+const OPTIONAL_SERVICES = [
+  UUIDS.MIJI_SERVICE, UUIDS.ENV_SERVICE, UUIDS.BATT_SERVICE,
+  UUIDS.PVVX_SERVICE, '0000fe95-0000-1000-8000-00805f9b34fb'
+];
+
+const clamp = (v,a,b) => Math.max(a, Math.min(b, v));
+const r1 = v => Math.round(v * 10) / 10;
+/* 由气温 + 相对湿度反算露点（Magnus 公式）。
+ * 和风 v7 的 now.dew 在部分专属 Host 上返回的并非露点温度，实测：
+ *   徐州 5℃/82% -> dew=26、哈尔滨 -7℃/75% -> dew=19、广州 15℃/50% -> dew=26
+ * 与物理值（2.2 / -10.7 / 4.7℃）严重不符。若直接采信，会让起雾判断在冬天误触发，
+ * 因此前端一律用温湿度自算，不信任上游 dew 字段。 */
+function dewFromTH(tempC, humidityPct){
+  if (!Number.isFinite(tempC) || !Number.isFinite(humidityPct) || humidityPct <= 0) return NaN;
+  const a = 17.62, b = 243.12;
+  const rh = clamp(humidityPct, 1, 100) / 100;
+  const g = Math.log(rh) + a * tempC / (b + tempC);
+  return r1(b * g / (a - g));
+}
+const fmt1 = v => Number.isFinite(v) ? v.toFixed(1) : '--.-';
+const hx = n => n.toString(16).padStart(2, '0');
+function dvOf(u8){ return new DataView(u8.buffer, u8.byteOffset, u8.byteLength); }
+function stepLabel(s){ return s === 0 ? '0 档常温' : (s < 0 ? '冷 ' + (-s) + ' 格' : '热 ' + s + ' 格'); }
+
+/** 原厂固件 GATT 温湿度帧（明文） */
+function parseXiaomiGatt(view){
+  const d = view instanceof DataView ? view : dvOf(view);
+  if (d.byteLength < 3) throw new Error('GATT 帧长度不足 3 字节');
+  const tempC = d.getInt16(0, true) / 100;          // 小端有符号，单位 0.01℃
+  const humidityPct = d.getUint8(2);                 // 整数百分比
+  const batteryMv = d.byteLength >= 5 ? d.getUint16(3, true) : null;
+  const batteryPct = d.byteLength >= 6 ? d.getUint8(5) : null;
+  if (!Number.isFinite(tempC) || tempC < -40 || tempC > 85) throw new Error('温度超出合理范围: ' + tempC);
+  if (humidityPct < 0 || humidityPct > 100) throw new Error('湿度超出合理范围: ' + humidityPct);
+  return { tempC: r1(tempC), humidityPct, batteryMv, batteryPct };
+}
+
+/** 标准 Environmental Sensing 特征值 */
+function parseStdTemp(view, uuid){
+  const d = view instanceof DataView ? view : dvOf(view);
+  if (d.byteLength < 2) throw new Error('温度特征值长度不足');
+  const raw = d.getInt16(0, true);
+  // c.uuid 在浏览器里是字符串 '00002a1f-...'；自测里可能传 16 位数字，两种都兼容
+  const is01 = typeof uuid === 'string'
+      ? uuid.toLowerCase().startsWith('00002a1f')
+      : uuid === UUIDS.TEMP_01;
+  return { tempC: r1(raw / (is01 ? 10 : 100)) };
+}
+function parseStdHum(view){
+  const d = view instanceof DataView ? view : dvOf(view);
+  if (d.byteLength < 2) throw new Error('湿度特征值长度不足');
+  return { humidityPct: r1(d.getUint16(0, true) / 100) };
+}
+
+/* ---------- 米家 0xFE95 MiBeacon 广播解析 ----------
+ * Service Data payload 布局（相对 Frame Control 起点）：
+ *   [0..2)  Frame Control uint16 LE
+ *           bit3 0x0008 = 加密；bit4 0x0010 = 含 MAC；bit5 0x0020 = 含 Capability；
+ *           bit6 0x0040 = 含 Object；bit12..15 = 版本
+ *   [2..4)  Product ID uint16 LE
+ *   [4]     Frame Counter
+ *   [5..11) MAC（反序存放，需 reverse 才是正常顺序）—— 仅 bit4 置位
+ *   [..]    Capability 1 字节（bit5）；若 capability & 0x20 再 +1 字节 IO
+ *   [i..]   Object TLV 列表：type uint16 LE + length uint8 + value
+ * 常用对象（全部小端，缩放 /10）：
+ *   0x1004 温度 int16 /10；0x1006 湿度 uint16 /10
+ *   0x100D 温湿度组合 int16 /10 + uint16 /10（LYWSD03MMC 最常见）
+ *   0x100A 电量百分比 uint8；0x1007 是照度(lux)，不是湿度！
+ * 加密帧：AES-CCM，bindkey 16 字节(v4/v5) / 12 字节派生(v2/v3)，
+ *   nonce = MAC反序(6) + ProductID(2) + FrameCounter(1) + 尾部3字节 = 12 字节，
+ *   AAD = 0x11，MIC = 最后 4 字节。WebCrypto 不支持 AES-CCM，
+ *   且 Chrome 稳定版无法读广播 —— 故此处只做识别并明确提示，
+ *   真实取数走上面的 GATT 明文路径。
+ */
+const MiBeacon = {
+  stripHeader(input){
+    let a = input instanceof Uint8Array ? input : new Uint8Array(input);
+    if (a.length >= 4 && a[1] === 0x16 && a[2] === 0x95 && a[3] === 0xFE) return a.slice(4); // 完整 AD structure
+    if (a.length >= 2 && a[0] === 0x95 && a[1] === 0xFE) return a.slice(2);                   // 仅带 UUID 前缀
+    if (a.length >= 4 && a[0] === 0x1a && a[1] === 0x16) return a.slice(4);
+    return a;                                                                                     // 已是 payload
+  },
+  parse(input){
+    const d = this.stripHeader(input);
+    if (d.length < 6) return { ok:false, why:'帧长不足（<6 字节）' };
+    const fc = d[0] | (d[1] << 8);
+    const meta = {
+      frameControl: '0x' + fc.toString(16).padStart(4, '0'),
+      productId: d[2] | (d[3] << 8),
+      counter: d[4],
+      version: fc >> 12,
+      encrypted: !!(fc & 0x0008),
+      hasObject: !!(fc & 0x0040)
+    };
+    let i = 5;
+    if (fc & 0x0010){ if (d.length < i + 6) return Object.assign({ok:false,why:'MAC 字段截断'},meta);
+      meta.mac = Array.from(d.slice(i, i+6)).reverse().map(hx).join(':'); i += 6; }
+    if (fc & 0x0020){ if (d.length < i + 1) return Object.assign({ok:false,why:'Capability 截断'},meta);
+      const cap = d[i++]; meta.capability = cap; if (cap & 0x20) i++; }
+    if (!(fc & 0x0040)) return Object.assign({ok:false,why:'该帧不含 Object 数据'},meta);
+    if (fc & 0x0008) return Object.assign({ok:false,why:'加密 MiBeacon：需要 bindkey + AES-CCM；请改用 GATT 连接态明文数据', needBindkey:true},meta);
+    return this.parseObjects(d.slice(i), meta);
+  },
+  parseObjects(payload, meta){
+    const out = Object.assign({}, meta, { ok:false, objects:[] });
+    let p = 0;
+    while (p + 3 <= payload.length){
+      const id = payload[p] | (payload[p+1] << 8);
+      const len = payload[p+2];
+      if (p + 3 + len > payload.length) break;
+      const v = payload.slice(p+3, p+3+len);
+      const d = dvOf(v);
+      out.objects.push('0x' + id.toString(16));
+      switch (id){
+        case 0x1004: if (len >= 2) out.tempC = r1(d.getInt16(0,true) / 10); break;
+        case 0x1006: if (len >= 2) out.humidityPct = r1(d.getUint16(0,true) / 10); break;
+        case 0x100D: if (len >= 4){ out.tempC = r1(d.getInt16(0,true) / 10);
+                                    out.humidityPct = r1(d.getUint16(2,true) / 10); } break;
+        case 0x100A: if (len >= 1) out.batteryPct = v[0]; break;
+        case 0x1007: if (len >= 3) out.illuminanceLux = v[0] | (v[1]<<8) | (v[2]<<16); break;
+      }
+      p += 3 + len;
+    }
+    out.ok = Number.isFinite(out.tempC);
+    if (!out.ok) out.why = '未解析出温度对象（可能全为电量/照度对象）';
+    return out;
+  }
+};
+
+/** atc1441 明文固件：0x181A Service Data，13 字节，大端，温度 0.1℃ / 湿度 1% */
+function parseAtcServiceData(u8){
+  const a = u8 instanceof Uint8Array ? u8 : new Uint8Array(u8);
+  if (a.length < 13) throw new Error('ATC 帧需 13 字节，实得 ' + a.length);
+  const t = (a[6] << 8 | a[7]);
+  const tSigned = t > 0x7fff ? t - 0x10000 : t;
+  return { tempC:r1(tSigned/10), humidityPct:a[8], batteryPct:a[9],
+           batteryMv:(a[10]<<8)|a[11], counter:a[12], source:'ATC (atc1441)' };
+}
+/** pvvx Custom 明文固件：0x181A Service Data，15 字节，全小端，0.01 单位 */
+function parsePvvxServiceData(u8){
+  const a = u8 instanceof Uint8Array ? u8 : new Uint8Array(u8);
+  if (a.length < 15) throw new Error('pvvx Custom 帧需 15 字节，实得 ' + a.length);
+  const d = dvOf(a);
+  return { tempC:r1(d.getInt16(6,true)/100), humidityPct:r1(d.getUint16(8,true)/100),
+           batteryMv:d.getUint16(10,true), batteryPct:a[12], counter:a[13],
+           flags:a[14], source:'pvvx Custom' };
+}
+/** 按长度自动判别 0x181A 的两种明文广播 */
+function parseEnvServiceData(u8){
+  const a = u8 instanceof Uint8Array ? u8 : new Uint8Array(u8);
+  if (a.length >= 15) return parsePvvxServiceData(a);
+  return parseAtcServiceData(a);
+}
+
+/* ---------- 核心控制算法 ---------- */
+class ACController {
+  constructor(cfg){
+    this.cfg = Object.assign({
+      targetC:24, deadband:1.5, cooldownMs:5*60*1000, evalMs:60*1000,
+      tempDelta:0.5, limitGap:3, weatherAware:true
+    }, cfg || {});
+    this.settings = { step:0, fan:0, recirc:'outer', ac:false };
+    this.samples = [];
+    this.lastAdvice = null;
+    this.lastSig = '';
+    this.lastSpokenAt = 0;
+    this.lastUserAdjustAt = 0;
+    this.lastEvalAt = 0;
+    this.lastEvalCabin = null;
+    this.evalCount = 0;
+    this.suggestedOps = 0;
+  }
+  setTarget(c){ this.cfg.targetC = clamp(Number(c) || 24, 18, 30); }
+  setSettings(patch, now){
+    Object.assign(this.settings, patch || {});
+    this.settings.step = clamp(Math.round(this.settings.step), -8, 8);
+    this.settings.fan  = clamp(Math.round(this.settings.fan), 0, 7);
+    this.noteUserAdjust(now || Date.now());
+  }
+  /** 用户调节后同样进入冷静期，避免刚拧完旋钮就催第二次 */
+  noteUserAdjust(now){ this.lastUserAdjustAt = now || Date.now(); }
+  pushSample(c, now){
+    if (!Number.isFinite(c)) return;
+    const t = now || Date.now();
+    this.samples.push({t, c});
+    while (this.samples.length > 60) this.samples.shift();
+  }
+  /** 最近 2 分钟温度变化：正=升温，负=降温 */
+  trend(now){
+    const t = now || Date.now(), cut = t - 120000;
+    const a = this.samples.filter(s => s.t >= cut);
+    return a.length >= 2 ? a[a.length-1].c - a[0].c : 0;
+  }
+  cooldownLeft(now){
+    const t = now || Date.now();
+    return Math.max(0, this.cfg.cooldownMs - (t - Math.max(this.lastSpokenAt, this.lastUserAdjustAt)));
+  }
+  shouldEvaluate(c, now){
+    const t = now || Date.now();
+    if (this.lastEvalCabin === null) return true;
+    if (t - this.lastEvalAt >= this.cfg.evalMs) return true;
+    return Math.abs(c - this.lastEvalCabin) >= this.cfg.tempDelta;
+  }
+  /** 按偏差一次给出完整目标档位（一次到位 = 最少操作次数） */
+  targetFor(d, weather){
+    const a = Math.abs(d), hot = d > 0;
+    const mag = a <= 2.5 ? 3 : (a <= 4 ? 5 : 8);
+    const fan = a <= 2.5 ? 3 : (a <= 4 ? 5 : 7);
+    const t = { step: hot ? -mag : mag, fan, ac: hot, recirc: hot ? 'inner' : 'outer' };
+    // 车外高温时制冷负担更大：风量前馈 +1，但不改动用户规定的 AC/循环规则。
+    // 天气过期（>15 分钟）必须整体停用前馈，绝不拿上个城市的天气指导当前空调。
+    const weatherFresh = weather && Number.isFinite(weather.tempC)
+        && !(weather.ageMs != null && weather.ageMs > 15*60*1000);
+    if (this.cfg.weatherAware && weatherFresh && hot && weather.tempC >= 30)
+      t.fan = clamp(t.fan + 1, 0, 7);
+    return t;
+  }
+  diff(t){
+    const s = this.settings, out = [];
+    if (s.step !== t.step) out.push('step');
+    if (s.fan !== t.fan) out.push('fan');
+    if (s.ac !== t.ac) out.push('ac');
+    if (s.recirc !== t.recirc) out.push('recirc');
+    return out;
+  }
+  weatherHint(c, d, weather){
+    if (!this.cfg.weatherAware || !weather || !Number.isFinite(weather.tempC)) return '';
+    if (weather.ageMs != null && weather.ageMs > 15*60*1000) return '';   // 过期天气不参与决断
+    const bits = [];
+    if (d > 0 && weather.tempC >= 30) bits.push('车外 ' + fmt1(weather.tempC) + ' 度，制冷期间保持内循环');
+    if (d < 0 && weather.tempC <= 8) bits.push('车外较冷，水温上来前可先内循环升温更快');
+    if (weather.humidityPct >= 80 && Number.isFinite(weather.dewPointC) && weather.dewPointC >= c - 5)
+      bits.push('车外湿度高，注意前挡起雾');
+    return bits.length ? '提示：' + bits.join('；') + '。' : '';
+  }
+  buildText(c, d, target, diffKeys, weather, prefix, first){
+    const dir = d > 0 ? '偏高' : '偏低';
+    const items = [];
+    if (diffKeys.includes('step'))   items.push('温度档调到 ' + stepLabel(target.step));
+    if (diffKeys.includes('fan'))    items.push('风量调到 ' + target.fan + ' 档');
+    if (diffKeys.includes('ac'))     items.push(target.ac ? '打开 AC' : '关闭 AC');
+    if (diffKeys.includes('recirc')) items.push(target.recirc === 'inner' ? '切到内循环' : '切到外循环');
+    const cmd = items.length ? items.join('，') + '。' : '档位已经到位，保持当前设置等待空调生效。';
+    // 首次建议把「偏热=AC开/内循环、偏冷=AC关/外循环」完整交代清楚；
+    // 已经到位的项用「保持」措辞，不产生额外操作，也不破坏最少操作次数。
+    let confirm = '';
+    if (first){
+      const keep = [];
+      if (!diffKeys.includes('ac'))     keep.push('AC 保持' + (target.ac ? '开启' : '关闭'));
+      if (!diffKeys.includes('recirc')) keep.push('保持' + (target.recirc === 'inner' ? '内循环' : '外循环'));
+      if (keep.length) confirm = keep.join('、') + '。';
+    }
+    return '车内 ' + fmt1(c) + ' 度，比目标' + dir + ' ' + fmt1(Math.abs(d)) + ' 度。'
+         + prefix + cmd + confirm + this.weatherHint(c, d, weather);
+  }
+  evaluate(input){
+    const now = input.now || Date.now();
+    const c = input.cabinC, weather = input.weather || null;
+    this.lastEvalAt = now; this.lastEvalCabin = c; this.evalCount++;
+    const cd = this.cooldownLeft(now);
+    const base = { state:'', speak:false, text:'', display:'', basis:'', level:'info',
+                   target:null, ops:0, cooldownLeft:cd, at:now };
+    if (!Number.isFinite(c))
+      return Object.assign(base, {state:'NO_DATA', display:'等待车内温度数据…', basis:'蓝牙尚未提供有效采样'});
+
+    const d = c - this.cfg.targetC, ad = Math.abs(d), s = this.settings;
+    const cdMin = Math.ceil(cd/60000);
+    const silent = (st, text, basis, level) => Object.assign(base, {
+      state:st, display:text, basis:basis, level:level||'info',
+      text:'', cooldownLeft:cd
+    });
+
+    /* 1. 死区：严格静默 */
+    if (ad <= this.cfg.deadband)
+      return silent('COMFORT', '已进入舒适区（' + fmt1(c) + '℃），保持当前设置，暂不播报。',
+        '|Δ|=' + fmt1(ad) + '℃ ≤ 死区 ' + this.cfg.deadband + '℃', 'ok');
+
+    /* 2. 触底 / 触顶容错（安全升级，允许打断冷静期） */
+    const hotLimit  = s.step === -8 && s.fan === 7 && c > this.cfg.targetC + this.cfg.limitGap;
+    const coldLimit = s.step ===  8 && s.fan === 7 && c < this.cfg.targetC - this.cfg.limitGap;
+    if (hotLimit || coldLimit){
+      const sig = 'LIMIT|' + (hotLimit?'H':'C') + '|' + Math.round(c);
+      if (this.lastAdvice && this.lastAdvice.level === 'limit' && this.lastSig === sig && cd > 0)
+        return silent('LIMIT', '已达空调极限，冷静期内不重复播报。', '极限提示已发出，剩余 ' + cdMin + ' 分钟', 'limit');
+      const txt = hotLimit
+        ? '已达空调极限，建议开窗通风或检查AC。'
+        : '已达空调极限，建议检查暖风、车窗或车外温度过低。';
+      const advice = Object.assign(base, {
+        state:'LIMIT', speak:true, text:txt, display:txt, level:'limit',
+        basis:'温度档 ' + stepLabel(s.step) + ' + 风量 7 档已到极限，车内 ' + fmt1(c)
+              + '℃ 仍超目标 ' + fmt1(this.cfg.limitGap) + '℃ 以上'
+              + this.weatherHint(c, d, weather),
+        ops:0, target:null
+      });
+      this.commit(advice, sig);
+      return advice;
+    }
+
+    /* 3. 操作冷静期：不重复播报同一问题 */
+    if (cd > 0)
+      return silent('COOLDOWN', '冷静期剩余 ' + cdMin + ' 分钟，暂不重复播报。',
+        '上次建议 ' + new Date(this.lastSpokenAt).toLocaleTimeString('zh-CN')
+        + ' 发出；用户最近调节 ' + new Date(this.lastUserAdjustAt).toLocaleTimeString('zh-CN'), 'wait');
+
+    /* 4. 常规建议：一次给出最优目标，只播报需要改的项 */
+    const target = this.targetFor(d, weather);
+    const diffKeys = this.diff(target);
+    const trend = this.trend(now);
+    const improving = d > 0 ? trend < -0.25 : trend > 0.25;
+    const sig = (d>0?'H':'C') + '|' + JSON.stringify(target) + '|' + JSON.stringify(s) + '|' + Math.round(c*2)/2;
+
+    // 用户误差容错：对比上次建议目标与用户实际档位
+    let prefix = '';
+    if (this.lastAdvice && this.lastAdvice.target && this.diff(this.lastAdvice.target).length)
+      prefix = '上次建议还没调到位，请按当前状态重新调：';
+
+    if (diffKeys.length === 0 && improving)
+      return silent('EFFECTING', '设置已到位且温度正在改善，等待空调生效，暂不打扰。',
+        '建议已执行；最近 2 分钟温度 ' + (trend>0?'+':'') + fmt1(trend) + '℃', 'ok');
+
+    // 冷静期已过、设置与温度都没变：不能机械重复同一句话，
+    // 但也不能沉默 —— 按用户要求给出「最新的调整指引」（排查型，内容不同于上次）
+    if (sig === this.lastSig && diffKeys.length === 0 && !improving){
+      const stalled = '车内仍是 ' + fmt1(c) + ' 度，档位已按建议到位但没有明显改善。'
+                    + '请保持当前设置，并检查车窗是否关严、AC 是否正常工作，或稍等空调生效。'
+                    + this.weatherHint(c, d, weather);
+      const advice = Object.assign(base, {
+        state:'STALLED', speak:true, text:stalled, display:stalled, level:'warn',
+        target, ops:0,
+        basis:'签名与上次一致（温度/档位未变化）、最近 2 分钟趋势 ' + fmt1(trend)
+              + '℃ → 不再重复原指令，改给排查指引'
+      });
+      this.commit(advice, sig);
+      return advice;
+    }
+
+    const text = this.buildText(c, d, target, diffKeys, weather, prefix, !this.lastAdvice);
+    const advice = Object.assign(base, {
+      state: d>0?'HOT':'COLD', speak:true, text, display:text, level: ad>3?'warn':'info',
+      target, ops:diffKeys.length,
+      basis:'偏差 ' + (d>0?'+':'-') + fmt1(ad) + '℃ → 目标 ' + stepLabel(target.step)
+            + ' / 风量 ' + target.fan + ' / AC ' + (target.ac?'开':'关')
+            + ' / ' + (target.recirc==='inner'?'内循环':'外循环')
+            + '；本次需操作 ' + diffKeys.length + ' 项（已到位项不再重复）'
+            + (weather && Number.isFinite(weather.tempC) ? '；外温 ' + fmt1(weather.tempC) + '℃（' + (weather.source||'?') + '）' : '；无有效天气数据，按车内温度判断')
+    });
+    this.commit(advice, sig);
+    return advice;
+  }
+  commit(a, sig){
+    this.lastAdvice = Object.assign({}, a);
+    this.lastSig = sig;
+    this.lastSpokenAt = a.at;
+    this.suggestedOps += a.ops || 0;
+  }
+  /** 重播上条建议，不重新计算 */
+  get lastText(){ return this.lastAdvice ? this.lastAdvice.text : ''; }
+}
+</script>
+
+<!-- ===== 设备 / UI 层 ===== -->
+<script>
+'use strict';
+const $ = id => document.getElementById(id);
+const LS = { get(k,d){ try{ const v=localStorage.getItem('ac.'+k); return v===null?d:v; }catch(e){ return d; } },
+             set(k,v){ try{ localStorage.setItem('ac.'+k,v); }catch(e){} } };
+/* 和风天气必须使用控制台分配的「专属 API Host」；旧的通用域名
+ * devapi.qweather.com 会返回 403 Invalid Host。这里同时把曾经保存过旧域名
+ * 的 localStorage 值自动迁移掉，否则老用户页面里仍会用无效 Host。 */
+const QW_HOST_DEFAULT = 'jq4up77284.re.qweatherapi.com';
+const QW_HOST_LEGACY  = 'devapi.qweather.com';
+function normalizeQwHost(h){
+  const v = String(h == null ? '' : h).trim().replace(/^https?:\/\//i,'').replace(/\/+$/,'');
+  return (!v || v === QW_HOST_LEGACY) ? QW_HOST_DEFAULT : v;
+}
+const CFG = {
+  qwHost: normalizeQwHost(LS.get('qwHost', QW_HOST_DEFAULT)),
+  qwKey:  LS.get('qwKey','63a7d2f1e8ee4958a25c5d03b2681b90'),
+  targetC: Number(LS.get('targetC','24')),
+  aware:   LS.get('aware','on') === 'on'
+};
+const controller = new ACController({ targetC:CFG.targetC, weatherAware:CFG.aware });
+const S = {
+  running:false, demo:false, ttsReady:false, bleStatus:'未连接', bleMode:'', device:null, server:null,
+  gattChar:null, pollTimer:null, geoTimer:null, evalTimer:null, demoTimer:null, reconnect:0,
+  wakeLock:null, geoWatchId:null, gps:null, weather:null, weatherAt:0, weatherLat:null, weatherLon:null,
+  cabinC:null, humidityPct:null, batteryMv:null, batteryPct:null, cabinAt:0,
+  stdTemp:null, stdHum:null, lastAdvice:null, logLines:[], voices:[]
+};
+
+/* ---------- 通用 UI ---------- */
+function log(msg, kind){
+  const t = new Date().toLocaleTimeString('zh-CN',{hour12:false});
+  S.logLines.push({t,msg,kind:kind||''});
+  if (S.logLines.length > 40) S.logLines.shift();
+  $('log').innerHTML = S.logLines.slice().reverse().map(l =>
+    '<div class="'+l.kind+'">'+l.t+'  '+String(l.msg).replace(/[<>&]/g,c=>({'<':'&lt;','>':'&gt;','&':'&amp;'}[c]))+'</div>').join('');
+}
+function chips(){
+  const isHttps = window.isSecureContext;
+  const bt = !!navigator.bluetooth;
+  const geo = !!navigator.geolocation;
+  const wk = 'wakeLock' in navigator;
+  const tts = 'speechSynthesis' in window;
+  const wAge = S.weatherAt ? Math.round((Date.now()-S.weatherAt)/60000) : null;
+  const arr = [
+    [isHttps?'HTTPS ✓':'非 HTTPS ✗', isHttps?'on':'bad'],
+    ['蓝牙 '+S.bleStatus, S.bleStatus==='已连接'?'on':(S.bleStatus==='连接中'?'warn':'')],
+    ['GPS '+(S.gps?'已定位':'未定位'), S.gps?'on':'warn'],
+    ['天气 '+(S.weather?(wAge+'分前'):'无'), S.weather?(wAge<=15?'on':'warn'):'warn'],
+    ['常亮 '+(S.wakeLock?'开':'关'), S.wakeLock?'on':'warn'],
+    ['语音 '+(S.ttsReady?'就绪':'未解锁'), S.ttsReady?'on':'warn'],
+    ['WebBT '+(bt?'✓':'✗'), bt?'on':'bad'],
+    ['定位API '+(geo?'✓':'✗'), geo?'on':'bad'],
+    ['WakeLock '+(wk?'✓':'✗'), wk?'on':'bad'],
+    ['TTS '+(tts?'✓':'✗'), tts?'on':'bad']
+  ];
+  $('chips').innerHTML = arr.map(x=>'<span class="chip '+x[1]+'">'+x[0]+'</span>').join('');
+}
+function secureCheck(){
+  const w = $('secureWarn');
+  if (!window.isSecureContext || !navigator.bluetooth){
+    w.classList.remove('hidden');
+    w.innerHTML = '<b>当前不是安全上下文或浏览器不支持 Web Bluetooth。</b><br>'
+      + 'Web Bluetooth / Geolocation / Screen Wake Lock 都要求 HTTPS（或 http://localhost）。'
+      + '请用 Vercel / GitHub Pages 的 https 网址打开；安卓请用 Chrome 而非微信内置浏览器。';
+  } else w.classList.add('hidden');
+}
+function renderHero(){
+  $('cabin').textContent = Number.isFinite(S.cabinC) ? S.cabinC.toFixed(1) : '--.-';
+  $('hum').textContent = S.humidityPct != null ? S.humidityPct + ' %' : '-- %';
+  $('outside').textContent = S.weather && Number.isFinite(S.weather.tempC) ? S.weather.tempC.toFixed(1)+' ℃' : '-- ℃';
+  $('batt').textContent = S.batteryMv ? (S.batteryMv/1000).toFixed(2)+' V' : (S.batteryPct!=null?S.batteryPct+' %':'--');
+  $('targetLbl').textContent = controller.cfg.targetC.toFixed(1)+' ±'+controller.cfg.deadband;
+  $('cabinAt').textContent = S.cabinAt ? '采样于 '+new Date(S.cabinAt).toLocaleTimeString('zh-CN')
+      + (S.bleMode?' · '+S.bleMode:'') : (S.demo?'演示数据':'等待蓝牙数据');
+}
+function renderEnv(){
+  const w = S.weather;
+  $('envTemp').textContent = w && Number.isFinite(w.tempC)
+      ? w.tempC.toFixed(1)+'℃'+(Number.isFinite(w.feelsLikeC)?' / '+w.feelsLikeC.toFixed(1)+'℃':'') : '--';
+  $('envHum').textContent = w
+      ? (Number.isFinite(w.humidityPct)?Math.round(w.humidityPct)+'%':'--')+' / '+(Number.isFinite(w.dewPointC)?w.dewPointC.toFixed(1)+'℃':'--') : '--';
+  $('envText').textContent = w ? (w.text||'--')+' · '+(w.obsTime||'--') : '--';
+  $('envSrc').textContent = w ? (w.source||'--')+' · '+(S.weatherAt?Math.round((Date.now()-S.weatherAt)/60000)+'分前':'--') : '--';
+  $('gpsStatus').textContent = S.gps ? '精度 '+Math.round(S.gps.accuracyM)+' m' : '未定位';
+  $('envCoord').textContent = S.gps
+      ? '坐标 '+S.gps.lon.toFixed(4)+', '+S.gps.lat.toFixed(4)
+        + (Number.isFinite(S.gps.speedMps)?' · '+Math.round(S.gps.speedMps*3.6)+' km/h':'')
+        + ' · '+new Date(S.gps.at).toLocaleTimeString('zh-CN')
+        + (S.weather?' · 天气取数坐标 '+Number(S.weatherLon).toFixed(3)+','+Number(S.weatherLat).toFixed(3):'')
+      : '坐标 --（GPS 不可用时可在「设置 / 诊断」里手动填经纬度）';
+}
+function renderSettings(){
+  const s = controller.settings;
+  $('stepVal').textContent = s.step===0?'0 · 常温':(s.step<0?'冷 '+(-s.step)+' 格':'热 '+s.step+' 格');
+  $('fanVal').textContent = s.fan+' 档';
+  document.querySelectorAll('#steps .step').forEach(b=>b.classList.toggle('sel', Number(b.dataset.v)===s.step));
+  document.querySelectorAll('#fans .step').forEach(b=>b.classList.toggle('sel', Number(b.dataset.v)===s.fan));
+  document.querySelectorAll('#recirc button').forEach(b=>b.classList.toggle('sel', b.dataset.v===s.recirc));
+  document.querySelectorAll('#ac button').forEach(b=>b.classList.toggle('sel', (b.dataset.v==='on')===s.ac));
+  document.querySelectorAll('#cfgAware button').forEach(b=>b.classList.toggle('sel',(b.dataset.v==='on')===CFG.aware));
+}
+function renderAdvice(r){
+  S.lastAdvice = r;
+  const card = $('adviceCard');
+  card.classList.toggle('limit', r.level==='limit');
+  const names = {NO_DATA:'待命',COMFORT:'舒适区',COOLDOWN:'冷静期',EFFECTING:'生效中',STALLED:'排查',HOT:'偏热',COLD:'偏冷',LIMIT:'极限'};
+  $('adviceLevel').textContent = names[r.state]||r.state;
+  $('adviceText').textContent = r.display;
+  $('adviceBasis').textContent = r.basis;
+  $('coolTip').textContent = r.cooldownLeft>0 ? '冷静期 '+Math.ceil(r.cooldownLeft/60000)+' 分钟' : '冷静期已结束';
+}
+
+/* ---------- 档位控件 ---------- */
+function buildSteps(){
+  let h='';
+  for (let v=-8; v<=8; v++) h += '<button class="step '+(v<0?'cold':(v>0?'hot':''))+'" data-v="'+v+'">'+(v>0?'+'+v:v)+'</button>';
+  $('steps').innerHTML = h;
+  let f='';
+  for (let v=0; v<=7; v++) f += '<button class="step" data-v="'+v+'">'+v+'</button>';
+  $('fans').innerHTML = f;
+  $('steps').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    controller.setSettings({step:Number(b.dataset.v)});
+    renderSettings(); log('用户调节温度档 → '+stepLabel(controller.settings.step)); evaluateNow(true);
+  });
+  $('fans').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    controller.setSettings({fan:Number(b.dataset.v)});
+    renderSettings(); log('用户调节风量 → '+controller.settings.fan+' 档'); evaluateNow(true);
+  });
+  $('recirc').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    controller.setSettings({recirc:b.dataset.v});
+    renderSettings(); log('用户切换循环 → '+(b.dataset.v==='inner'?'内循环':'外循环')); evaluateNow(true);
+  });
+  $('ac').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    controller.setSettings({ac:b.dataset.v==='on'});
+    renderSettings(); log('用户切换 AC → '+(controller.settings.ac?'开':'关')); evaluateNow(true);
+  });
+  $('cfgAware').addEventListener('click', e=>{
+    const b=e.target.closest('button'); if(!b) return;
+    CFG.aware = b.dataset.v==='on'; controller.cfg.weatherAware = CFG.aware; LS.set('aware',CFG.aware?'on':'off');
+    renderSettings(); log('天气前馈 → '+(CFG.aware?'开':'关'));
+  });
+}
+
+/* ---------- TTS ---------- */
+function refreshVoices(){ try{ S.voices = speechSynthesis.getVoices()||[]; }catch(e){} }
+function unlockTTS(){
+  if (!('speechSynthesis' in window)){ log('浏览器不支持 speechSynthesis','e'); return; }
+  try{
+    refreshVoices();
+    const u = new SpeechSynthesisUtterance(' ');
+    u.lang='zh-CN'; u.volume=0; u.rate=1;
+    speechSynthesis.speak(u);                 // 必须在用户手势里执行，解锁 Android Chrome 的音频
+    S.ttsReady = true;
+    log('TTS 已在用户手势中解锁','g');
+    if (speechSynthesis.addEventListener) speechSynthesis.addEventListener('voiceschanged', refreshVoices);
+  }catch(e){ log('TTS 解锁失败：'+e.message,'e'); }
+  chips();
+}
+function speak(text){
+  if (!text) return;
+  if (!('speechSynthesis' in window)){ log('TTS 不可用','e'); return; }
+  try{
+    speechSynthesis.cancel();
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang='zh-CN'; u.rate=1.05; u.pitch=1; u.volume=1;
+    const zh = S.voices.find(v=>/zh[-_]?(CN|Hans|China)/i.test(v.lang)) || S.voices.find(v=>/^zh/i.test(v.lang));
+    if (zh) u.voice = zh;
+    u.onstart = ()=>log('播报：'+text.slice(0,50)+'…','g');
+    u.onerror = e=>log('TTS 出错：'+(e.error||e),'e');
+    speechSynthesis.speak(u);
+  }catch(e){ log('TTS 异常：'+e.message,'e'); }
+}
+
+/* ---------- Screen Wake Lock ---------- */
+async function requestWakeLock(){
+  if (!('wakeLock' in navigator)){ log('浏览器不支持 Screen Wake Lock','w'); return; }
+  try{
+    if (S.wakeLock && S.wakeLock.released === false) return;
+    S.wakeLock = await navigator.wakeLock.request('screen');
+    S.wakeLock.addEventListener('release', ()=>{ log('屏幕常亮已释放','w'); S.wakeLock=null; chips(); });
+    log('屏幕常亮已开启','g');
+  }catch(e){ log('常亮申请失败：'+e.message,'e'); }
+  chips();
+}
+document.addEventListener('visibilitychange', ()=>{
+  if (document.visibilityState==='visible' && S.running){
+    requestWakeLock();               // 切走再回来必须重新申请
+    evaluateNow(true);
+  }
+});
+
+/* ---------- 蓝牙 ---------- */
+function setBle(st, mode){ S.bleStatus=st; if(mode!==undefined) S.bleMode=mode; chips(); renderHero(); }
+function clearBleTimers(){ if(S.pollTimer){ clearInterval(S.pollTimer); S.pollTimer=null; } }
+function onFrame(p){
+  if (!p || !Number.isFinite(p.tempC)) return;
+  const now = Date.now();
+  if (p.humidityPct!=null) S.humidityPct = p.humidityPct;
+  if (p.batteryMv!=null) S.batteryMv = p.batteryMv;
+  if (p.batteryPct!=null) S.batteryPct = p.batteryPct;
+  S.cabinC = p.tempC; S.cabinAt = now;
+  controller.pushSample(p.tempC, now);
+  renderHero();
+  // 温度变化超过 0.5℃ 立即评估（仍受冷静期约束）
+  if (controller.shouldEvaluate(p.tempC, now)) evaluateNow(false);
+}
+function onDisconnected(){
+  setBle('已断开',''); clearBleTimers(); log('蓝牙连接断开','e');
+  if (!S.running || !S.device) return;
+  const n = ++S.reconnect;
+  if (n > 4){ log('自动重连次数用尽，请点「连接 / 重连蓝牙」','w'); return; }
+  setTimeout(async ()=>{
+    try{
+      log('尝试自动重连 #'+n);
+      S.server = await S.device.gatt.connect();     // 已授权设备重连无需用户手势
+      await attachCharacteristics(S.server);
+    }catch(e){ log('自动重连失败：'+e.message,'e'); }
+  }, 1200*n);
+}
+function startPolling(ch){
+  clearBleTimers();
+  setBle('轮询读取','readValue 每 6 秒');
+  log('该固件 startNotifications 不可用，改用 readValue 轮询（兼容性兜底）','w');
+  const tick = async ()=>{
+    try{ onFrame(parseXiaomiGatt(await ch.readValue())); }
+    catch(e){ log('轮询读取失败：'+e.message,'w'); }
+  };
+  S.pollTimer = setInterval(tick, 6000); tick();
+}
+async function attachCharacteristics(server){
+  S.server = server; S.reconnect = 0;
+  /* 路径 1：原厂固件 ebe0ccc1 —— 一帧同时拿到温度/湿度/电量 */
+  try{
+    const svc = await server.getPrimaryService(UUIDS.MIJI_SERVICE);
+    const ch  = await svc.getCharacteristic(UUIDS.MIJI_TH);
+    S.gattChar = ch;
+    ch.addEventListener('characteristicvaluechanged', e=>{
+      try{ onFrame(parseXiaomiGatt(e.target.value)); }
+      catch(err){ log('GATT 帧解析失败：'+err.message,'w'); }
+    });
+    try{
+      await ch.startNotifications();
+      setBle('已连接','原厂 GATT 通知');
+      log('已订阅原厂温湿度通知 ebe0ccc1','g');
+      try{ onFrame(parseXiaomiGatt(await ch.readValue())); }catch(e){}
+    }catch(e){
+      // 部分 LYWSD03MMC 固件 CCCD handle 异常，Chrome 会抛 "CCCD Handle not found"
+      log('startNotifications 失败：'+e.message,'w');
+      startPolling(ch);
+    }
+    return true;
+  }catch(e){ log('原厂 GATT 路径不可用：'+e.message,'w'); }
+
+  /* 路径 2：pvvx/ATC 自定义固件的标准 Environmental Sensing 特征值 */
+  try{
+    const svc = await server.getPrimaryService(UUIDS.ENV_SERVICE);
+    const chars = await svc.getCharacteristics();
+    let got = 0;
+    for (const c of chars){
+      const u = c.uuid.toLowerCase();
+      if (u.startsWith('00002a1f') || u.startsWith('00002a6e')){
+        try{
+          c.addEventListener('characteristicvaluechanged', e=>{
+            try{ S.stdTemp = parseStdTemp(e.target.value, c.uuid).tempC; mergeStd(); }
+            catch(err){ log('标准温度帧解析失败：'+err.message,'w'); }
+          });
+          await c.startNotifications(); got++;
+        }catch(err){ log('标准温度订阅失败：'+err.message,'w'); }
+      } else if (u.startsWith('00002a6f')){
+        try{
+          c.addEventListener('characteristicvaluechanged', e=>{
+            try{ S.stdHum = parseStdHum(e.target.value).humidityPct; mergeStd(); }
+            catch(err){ log('标准湿度帧解析失败：'+err.message,'w'); }
+          });
+          await c.startNotifications(); got++;
+        }catch(err){ log('标准湿度订阅失败：'+err.message,'w'); }
+      }
+    }
+    if (got){ setBle('已连接','标准 0x181A 通知'); log('已订阅 '+got+' 个标准温湿度特征值','g');
+      S.pollTimer = setInterval(async ()=>{                 // 有些固件订阅后首帧延迟
+        try{
+          for (const c of chars){
+            const u=c.uuid.toLowerCase();
+            if (u.startsWith('00002a1f')||u.startsWith('00002a6e')) S.stdTemp=parseStdTemp(await c.readValue(),c.uuid).tempC;
+            else if (u.startsWith('00002a6f')) S.stdHum=parseStdHum(await c.readValue()).humidityPct;
+          }
+          mergeStd();
+        }catch(e){}
+      }, 10000);
+      return true;
+    }
+  }catch(e){ log('标准 0x181A 路径不可用：'+e.message,'w'); }
+
+  /* 路径 3：pvvx 私有 0x1F10/0x1F1F，写 0x33 启动测量通知 */
+  try{
+    const svc = await server.getPrimaryService(UUIDS.PVVX_SERVICE);
+    const ch  = await svc.getCharacteristic(UUIDS.PVVX_CHAR);
+    ch.addEventListener('characteristicvaluechanged', e=>{
+      try{
+        const a = new Uint8Array(e.target.value.buffer, e.target.value.byteOffset, e.target.value.byteLength);
+        if (a.length >= 8 && a[0] === 0x33){
+          const d = new DataView(a.buffer, a.byteOffset, a.byteLength);
+          onFrame({ tempC: r1(d.getInt16(1,true)/100), humidityPct: r1(d.getUint16(3,true)/100),
+                    batteryPct: a[5], batteryMv: d.getUint16(6,true) });
+        }
+      }catch(err){ log('pvvx 帧解析失败：'+err.message,'w'); }
+    });
+    await ch.startNotifications();
+    try{ await ch.writeValue(new Uint8Array([0x33])); }catch(e){}
+    setBle('已连接','pvvx 0x1F1F 通知'); log('已订阅 pvvx 综合测量帧','g');
+    return true;
+  }catch(e){ log('pvvx 路径不可用：'+e.message,'w'); }
+
+  setBle('已连接但无数据','未找到可订阅特征值');
+  log('已连接，但没有找到可读取温湿度的特征值；建议刷 pvvx 明文固件或检查固件版本','e');
+  return false;
+}
+function mergeStd(){
+  if (!Number.isFinite(S.stdTemp)) return;
+  onFrame({ tempC:S.stdTemp, humidityPct:S.stdHum!=null?S.stdHum:undefined });
+}
+/** 必须在用户手势里同步调用 requestDevice；返回 Promise，调用方再 await */
+function requestBleDevice(){
+  if (!navigator.bluetooth){ log('此浏览器不支持 Web Bluetooth（请用安卓 Chrome + HTTPS）','e'); return Promise.reject(new Error('no bluetooth')); }
+  setBle('连接中','');
+  return navigator.bluetooth.requestDevice({
+    filters: [{namePrefix:'LYWSD03MMC'}, {namePrefix:'ATC_'}, {namePrefix:'LYWSD03'}, {namePrefix:'BTHome'}],
+    optionalServices: OPTIONAL_SERVICES
+  });
+}
+async function connectBle(){
+  try{
+    const p = requestBleDevice();
+    const device = await p;
+    S.device = device;
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    log('已选择设备：'+(device.name||device.id),'g');
+    const server = await device.gatt.connect();
+    await attachCharacteristics(server);
+    chips();
+  }catch(e){
+    // 用户取消选择器、权限拒绝、断连等都不允许让页面崩溃
+    setBle('未连接','');
+    log('蓝牙连接失败/已取消：'+(e && e.message ? e.message : e),'w');
+  }
+}
+
+/* ---------- GPS + 天气（和风主 / Open-Meteo 备） ---------- */
+async function fetchJson(url, ms){
+  const ac = new AbortController();
+  const timer = setTimeout(()=>ac.abort(), ms || 9000);
+  try{
+    const r = await fetch(url, {signal:ac.signal, cache:'no-store'});
+    const j = await r.json();
+    return {r, j};
+  } finally{ clearTimeout(timer); }
+}
+async function fetchQWeather(lat, lon){
+  // 和风要求 location=经度,纬度（顺序不能反）
+  const url = 'https://' + CFG.qwHost.replace(/^https?:\/\//,'').replace(/\/$/,'')
+            + '/v7/weather/now?location=' + lon.toFixed(2) + ',' + lat.toFixed(2)
+            + '&key=' + encodeURIComponent(CFG.qwKey);
+  const {r, j} = await fetchJson(url);
+  if (!r.ok || j.code !== '200'){
+    const why = j.error ? (j.error.title || '') + ' ' + (j.error.detail || '') : ('HTTP '+r.status);
+    throw new Error('和风 ' + (j.code || r.status) + '：' + why);
+  }
+  const n = j.now || {};
+  const t = Number(n.temp), rh = Number(n.humidity);
+  return {
+    tempC:t, humidityPct:rh, feelsLikeC:Number(n.feelsLike),
+    // 不用 now.dew：该字段在部分专属 Host 上数值异常，改用温湿度自算露点
+    dewPointC:dewFromTH(t, rh), text:n.text||'', obsTime:n.obsTime||'', source:'和风天气',
+    localTime:new Date().toLocaleTimeString('zh-CN')
+  };
+}
+async function fetchOpenMeteo(lat, lon){
+  const url = 'https://api.open-meteo.com/v1/forecast?latitude=' + lat.toFixed(4)
+    + '&longitude=' + lon.toFixed(4)
+    + '&current=temperature_2m,relative_humidity_2m,apparent_temperature,dew_point_2m,is_day'
+    + '&timezone=auto';
+  const {r, j} = await fetchJson(url);
+  if (!r.ok) throw new Error('Open-Meteo HTTP '+r.status);
+  const c = j.current || j.current_weather || {};
+  return {
+    tempC:Number(c.temperature_2m != null ? c.temperature_2m : c.temperature),
+    humidityPct:Number(c.relative_humidity_2m),
+    feelsLikeC:Number(c.apparent_temperature), dewPointC:Number(c.dew_point_2m),
+    text:Number(c.is_day) ? '白昼' : '夜间', obsTime:(c.time||'').slice(11) || '当前',
+    source:'Open-Meteo', timezone:j.timezone||'', localTime:(c.time||'').slice(11)
+  };
+}
+function haversine(a,b,c,d){
+  const R=6371000, rad=x=>x*Math.PI/180;
+  const dLa=rad(c-a), dLo=rad(d-b);
+  const h=Math.sin(dLa/2)**2+Math.cos(rad(a))*Math.cos(rad(c))*Math.sin(dLo/2)**2;
+  return 2*R*Math.asin(Math.sqrt(h));
+}
+async function refreshWeather(force){
+  if (!S.gps){ log('尚无 GPS 坐标，无法取天气；可在设置里手动填坐标','w'); return; }
+  const lat=S.gps.lat, lon=S.gps.lon, now=Date.now();
+  const moved = S.weatherLat==null || haversine(S.weatherLat,S.weatherLon,lat,lon) >= 3000;
+  if (!force && !moved && S.weatherAt && now-S.weatherAt < 10*60*1000){ log('位移 <3km 且 <10 分钟，跳过天气请求（省配额）'); return; }
+  let w=null, err='';
+  try{
+    w = await fetchQWeather(lat,lon);
+    if (!Number.isFinite(w.tempC)) throw new Error('和风返回温度无效');
+  }catch(e){
+    err = e.message;
+    log('主方案失败：'+err+' → 自动切换 Open-Meteo','w');
+    try{
+      w = await fetchOpenMeteo(lat,lon);
+      if (!Number.isFinite(w.tempC)) throw new Error('Open-Meteo 返回温度无效');
+      w.source = 'Open-Meteo（和风失败回落）';
+    }catch(e2){ log('备用方案也失败：'+e2.message+'；保留上一次天气数据','e'); }
+  }
+  if (w){
+    S.weather=w; S.weatherAt=now; S.weatherLat=lat; S.weatherLon=lon;
+    log('天气已更新：'+w.tempC.toFixed(1)+'℃ / '+Math.round(w.humidityPct)+'% · '+w.source,'g');
+    renderEnv(); renderHero(); evaluateNow(true);
+  }
+  chips();
+}
+function startGeo(){
+  if (!navigator.geolocation){ log('浏览器不支持 Geolocation','e'); return; }
+  try{
+    S.geoWatchId = navigator.geolocation.watchPosition(pos=>{
+      const c=pos.coords;
+      S.gps={lat:c.latitude,lon:c.longitude,accuracyM:c.accuracy||0,
+             speedMps:Number.isFinite(c.speed)?c.speed:null,at:pos.timestamp||Date.now()};
+      renderEnv(); chips(); refreshWeather(false);
+    }, err=>{
+      log('定位失败（'+err.code+'）：'+err.message+'；可改用手动坐标','w');
+      $('gpsStatus').textContent='定位失败';
+    }, {enableHighAccuracy:true, maximumAge:20000, timeout:15000});
+    log('已启动 GPS 持续定位（watchPosition）','g');
+  }catch(e){ log('启动定位异常：'+e.message,'e'); }
+}
+
+/* ---------- 调度 / 评估 ---------- */
+function evaluateNow(force){
+  if (!S.running && !S.demo) return;
+  // force=true：定时器 / 按钮 / 用户调节；false：BLE 帧（再校验一次触发条件）
+  if (!force && !controller.shouldEvaluate(S.cabinC, Date.now())) return;
+  const r = controller.evaluate({
+    cabinC:S.cabinC, weather:S.weather ? Object.assign({},S.weather,{ageMs:Date.now()-S.weatherAt}) : null
+  });
+  renderAdvice(r);
+  if (r.speak && S.ttsReady){ speak(r.text); log('已发出建议，需操作 '+r.ops+' 项','g'); }
+  else if (r.speak && !S.ttsReady) log('有建议但未解锁 TTS，仅文字显示','w');
+  chips();
+}
+function startScheduler(){
+  if (S.evalTimer) clearInterval(S.evalTimer);
+  S.evalTimer = setInterval(()=>evaluateNow(true), 60000);   // 每 1 分钟一次
+  if (S.geoTimer) clearInterval(S.geoTimer);
+  S.geoTimer = setInterval(()=>renderEnv(), 30000);          // 刷新新鲜度显示
+}
+function stopAll(){
+  S.running=false;
+  [S.evalTimer,S.geoTimer,S.demoTimer,S.pollTimer].forEach(t=>{ if(t) clearInterval(t); });
+  S.evalTimer=S.geoTimer=S.demoTimer=S.pollTimer=null;
+  if (S.geoWatchId!=null && navigator.geolocation){ try{ navigator.geolocation.clearWatch(S.geoWatchId); }catch(e){} S.geoWatchId=null; }
+  if (S.wakeLock){ try{ S.wakeLock.release(); }catch(e){} S.wakeLock=null; }
+  if (S.device && S.device.gatt && S.device.gatt.connected){ try{ S.device.gatt.disconnect(); }catch(e){} }
+  try{ speechSynthesis.cancel(); }catch(e){}
+  const b=$('btnStart'); b.textContent='▶ 启动智能助手'; b.classList.remove('running');
+  setBle('未连接',''); log('助手已停止','w'); chips();
+}
+function startAll(){
+  S.running=true;
+  const b=$('btnStart'); b.textContent='■ 停止智能助手'; b.classList.add('running');
+  // ↓↓↓ 以下都必须在同一个用户手势的同步栈里发起 ↓↓↓
+  unlockTTS();
+  requestWakeLock();
+  const blePromise = requestBleDevice().then(async device=>{
+    S.device=device;
+    device.addEventListener('gattserverdisconnected', onDisconnected);
+    log('已选择设备：'+(device.name||device.id),'g');
+    const server=await device.gatt.connect();
+    await attachCharacteristics(server); chips();
+  }).catch(e=>{ setBle('未连接',''); log('蓝牙连接失败/已取消：'+(e&&e.message?e.message:e),'w'); });
+  startGeo();
+  startScheduler();
+  log('助手已启动：TTS 解锁 / 常亮 / GPS / 蓝牙 / 60 秒调度','g');
+  evaluateNow(true);
+  chips();
+  blePromise.finally(()=>chips());
+}
+
+/* ---------- 演示模式（无硬件、无网络也能验证算法与 UI） ---------- */
+function toggleDemo(){
+  if (S.demo){
+    S.demo=false; if(S.demoTimer) clearInterval(S.demoTimer); S.demoTimer=null;
+    log('演示模式已关闭','w'); return;
+  }
+  S.demo=true; S.running=true; unlockTTS(); requestWakeLock();
+  let t=29.4, k=0;
+  S.weather={tempC:33.2,humidityPct:62,feelsLikeC:36.1,dewPointC:24.8,text:'晴',obsTime:'当前',source:'演示合成',localTime:''};
+  S.weatherAt=Date.now();
+  renderEnv();
+  const tick=()=>{
+    k++;
+    // 按用户当前档位模拟车内温度响应
+    const s=controller.settings;
+    const cooling = s.ac ? Math.min(0.55, s.fan*0.07 + Math.max(0,-s.step)*0.035) : 0;
+    t = Math.max(18, t - cooling + (Math.random()-0.5)*0.12);
+    S.cabinC=r1(t); S.humidityPct=Math.round(52+Math.random()*5); S.cabinAt=Date.now();
+    controller.pushSample(S.cabinC, S.cabinAt); renderHero();
+    if (controller.shouldEvaluate(S.cabinC, S.cabinAt) || k%12===0) evaluateNow(true);
+  };
+  S.demoTimer=setInterval(tick, 5000); tick();
+  log('演示模式：每 5 秒模拟一帧 BLE 数据，可直接验证算法/TTS','g');
+  chips();
+}
+
+/* ---------- 按钮绑定 ---------- */
+$('btnStart').addEventListener('click', ()=> S.running ? stopAll() : startAll());
+$('btnBle').addEventListener('click', ()=>{ if(!S.running){ unlockTTS(); requestWakeLock(); S.running=true; startScheduler(); } connectBle(); });
+$('btnWeather').addEventListener('click', ()=>refreshWeather(true));
+$('btnRepeat').addEventListener('click', ()=>{
+  const t=controller.lastText;
+  if(!t){ log('尚无建议可重播','w'); return; }
+  if(!S.ttsReady) unlockTTS();
+  speak(t);
+});
+$('btnDemo').addEventListener('click', ()=>{ if(S.running) stopAll(); toggleDemo(); });
+$('btnCfg').addEventListener('click', ()=> $('cfg').classList.toggle('hidden'));
+$('btnHelp').addEventListener('click', ()=> $('help').classList.toggle('hidden'));
+$('btnSaveCfg').addEventListener('click', ()=>{
+  CFG.qwHost=normalizeQwHost($('cfgHost').value); CFG.qwKey=$('cfgKey').value.trim()||CFG.qwKey;
+  CFG.targetC=clamp(Number($('cfgTarget').value)||24,18,30);
+  LS.set('qwHost',CFG.qwHost); LS.set('qwKey',CFG.qwKey); LS.set('targetC',CFG.targetC);
+  controller.setTarget(CFG.targetC); renderHero(); renderSettings();
+  log('设置已保存：host='+CFG.qwHost+' / 目标='+CFG.targetC+'℃','g');
+});
+$('btnManualGeo').addEventListener('click', ()=>{
+  const lon=Number($('cfgLon').value), lat=Number($('cfgLat').value);
+  if(!Number.isFinite(lon)||!Number.isFinite(lat)||Math.abs(lon)>180||Math.abs(lat)>90){ log('手动坐标无效','e'); return; }
+  S.gps={lat,lon,accuracyM:0,speedMps:null,at:Date.now()};
+  renderEnv(); refreshWeather(true); log('已使用手动坐标 '+lon.toFixed(4)+','+lat.toFixed(4),'g');
+});
+$('btnParseHex').addEventListener('click', ()=>{
+  const raw=$('cfgHex').value.trim().replace(/0x/gi,'').replace(/[^0-9a-f]/gi,'');
+  if(raw.length<4){ $('hexOut').textContent='请输入至少 2 字节 HEX'; return; }
+  const u8=new Uint8Array(raw.match(/../g).map(b=>parseInt(b,16)));
+  let out='';
+  try{
+    const m=MiBeacon.parse(u8);
+    out+='MiBeacon(FE95): '+JSON.stringify(m,null,1)+'\n';
+    if(!m.ok) out+='→ '+(m.why||'无温度数据')+'\n';
+  }catch(e){ out+='MiBeacon 解析异常：'+e.message+'\n'; }
+  if (u8.length === 13 || u8.length === 15){
+    try{ out+='\n0x181A 明文广播: '+JSON.stringify(parseEnvServiceData(u8))+'\n'; }
+    catch(e){ out+='\n0x181A 解析：'+e.message+'\n'; }
+  } else out+='\n（帧长 '+u8.length+' 字节，不是 13/15 字节的 0x181A 明文广播，跳过）\n';
+  try{ out+='\nGATT 5 字节帧(若粘贴的是连接态数据): '+JSON.stringify(parseXiaomiGatt(dvOf(u8)))+'\n'; }
+  catch(e){ out+=''; }
+  $('hexOut').textContent=out;
+  log('已解析广播 HEX 帧','g');
+});
+
+/* ---------- 初始化 ---------- */
+$('cfgHost').value=CFG.qwHost; $('cfgKey').value=CFG.qwKey; $('cfgTarget').value=CFG.targetC;
+buildSteps(); renderSettings(); renderHero(); renderEnv(); secureCheck(); chips();
+// 只渲染初始文案，不调用 evaluate，避免污染 lastEvalAt / lastEvalCabin 等算法状态
+renderAdvice({state:'NO_DATA',level:'info',speak:false,cooldownLeft:0,
+  display:'点击底部「启动智能助手」，连接温湿度计并允许定位。',
+  basis:'目标 '+controller.cfg.targetC+'℃ · 死区 ±'+controller.cfg.deadband+'℃ · 建议后 5 分钟冷静期'});
+log('页面就绪 · 目标 '+controller.cfg.targetC+'℃ / 死区 ±'+controller.cfg.deadband+'℃','g');
+if (!window.isSecureContext) log('警告：非 HTTPS，Web Bluetooth / GPS / Wake Lock 均不可用','e');
+if (!navigator.bluetooth) log('navigator.bluetooth 不存在：请用安卓 Chrome 打开 https 网址','e');
+</script>
+</body>
+</html>
